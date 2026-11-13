@@ -4,15 +4,19 @@
 # 纪律：探针只消费公开 API；一旦探针依赖内部头文件，上游重构就会伪装成"移植失败"。
 
 set(PKG_ROOT "${CMAKE_BINARY_DIR}/pkg")
-set(PKG_PREFIX "${PKG_ROOT}/prefix")
-
-add_custom_target(pkg ALL
+if(NOT DEFINED PKG_PREFIX)
+  set(PKG_PREFIX "${PKG_ROOT}/prefix")
+  add_custom_target(pkg ALL
   COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/cmake/pkg-build.sh" "${SRC_DIR}" "${PKG_ROOT}"
   COMMENT "构建上游 pixman（${SRC_DIR}）"
   VERBATIM)
+  set(HAVE_PKG_TARGET TRUE)
+endif()
 
 add_executable(pixman_harness test/pkg_pixman.c)
-add_dependencies(pixman_harness pkg)
+if(HAVE_PKG_TARGET)
+  add_dependencies(pixman_harness pkg)
+endif()
 # 用 -l 形式而不是绝对路径：否则 CMake 会把 .a 当成"缺规则的文件"，
 # 在首次配置（库还没生成）时直接报错。
 target_include_directories(pixman_harness PRIVATE "${PKG_PREFIX}/include/pixman-1")
