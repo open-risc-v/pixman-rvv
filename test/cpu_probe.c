@@ -96,7 +96,8 @@ int main(void)
             t0 = rdt();
             for (int k = 0; k < REP; k++) {
                 vint32m2_t v = __riscv_vle32_v_i32m2(src, vl);
-                vint32m2_t g = __riscv_vrgather_vv_i32m2(v, __riscv_vle32_v_i32m2(idx, vl), vl);
+                /* vrgather 的索引必须是无符号向量（GCC 14 起不再接受有符号索引） */
+                vint32m2_t g = __riscv_vrgather_vv_i32m2(v, __riscv_vle32_v_u32m2((const uint32_t *)idx, vl), vl);
                 acc += __riscv_vmv_x_s_i32m2_i32(__riscv_vrsub_vx_i32m2(g, 0, vl));
             }
             t1 = rdt();
